@@ -1,6 +1,5 @@
 #include <iostream>
 #include <cstdlib>
-#include <fstream>
 #include <vector>
 
 int MAX_MAZE_WIDTH = 100;
@@ -12,61 +11,53 @@ char BLOCK_SIGN = '#';
 
 using namespace std;
 
-// NA POZNIEJ DO ARBITRA
-//void readInputArguments(int &xLen, int &yLen, int &numOfMirrors) {
-//    cin >> yLen;
-//    cin >> xLen;
-//    cin >> numOfMirrors;
-//    cin.ignore();
-//}
-//
-//void parseMaze(const int &xLen, const int &yLen, vector<vector<char>> &maze) {
-//    for (int i = 0; i < yLen; ++i) {
-//        maze[i] = vector<char>(xLen);
-//        string input;
-//        getline(cin, input);
-//        for (int j = 0; j < xLen; ++j) {
-//            maze[i][j] = input[j];
-//        }
-//    }
-//}
-void parseInputDataFromFile (ifstream inputFile){
-
+void readInputArguments(int &length, int &width, int &numOfMirrors) {
+    cin >> length;
+    cin >> width;
+    cin >> numOfMirrors;
+    cin.ignore();
 }
+
+void parseMaze(const int &length, const int &width, vector<vector<char>> &maze) {
+    for (int i = 0; i < length; ++i) {
+        string input;
+        getline(cin, input);
+        for (int j = 0; j < width; ++j) {
+            maze[i][j] = input[j];
+        }
+    }
+}
+
+void printMaze(const int &length, const int &width, vector<vector<char>> &maze) {
+    for(int i = 0; i < length; i++){
+        for(int j = 0; j < (width-1); j++){
+            cout << maze[i][j];
+        }
+        cout << maze[i][width-1] << endl;
+    }
+}
+
+
 int main(int argc, char *argv[]) {
 
     int mazeLength;
     int mazeWidth;
     int amountOfMirrors;
-    vector<string> originalMaze(1);
+    vector<vector<char>> originalMaze;
 
-    string line;
-    ifstream inputText;
-    inputText.open("C:/Home/Studia/Semestr_6/7_AdPTO/Project/labirynt.txt", ios_base::in);
-
-    if(inputText.is_open()){
-        getline(inputText, line);
-        int spacePosition = line.find_first_of(" ");
-        mazeLength = atoi(line.substr(0, spacePosition).c_str());
-        int lengthOfSecondString = line.length() - (spacePosition + 1);
-        mazeWidth = atoi(line.substr(spacePosition + 1, lengthOfSecondString).c_str());
-        getline(inputText, line);
-        amountOfMirrors = atoi(line.c_str());
-
-        for(int i = 0; i< mazeLength; ++i){
-            string vectorLine;
-            getline(inputText, vectorLine);
-            originalMaze[i] = vectorLine;
-        }
+    readInputArguments(mazeLength, mazeWidth, amountOfMirrors);
+    originalMaze = vector<vector<char>>(mazeLength);
+    for(int i = 0; i < mazeLength; i++){
+        originalMaze[i] = vector<char>(mazeWidth);
     }
-    inputText.close();
-
+    parseMaze(mazeLength, mazeWidth, originalMaze);
 
     cout << mazeWidth << endl;
     cout << mazeLength << endl;
     cout << amountOfMirrors << endl;
 
-
+    cout << "Testowe wypisane labiryntu\n\n" << endl;
+    printMaze(mazeLength, mazeWidth, originalMaze);
 
     system("pause");
     return 0;
