@@ -16,6 +16,9 @@ int WEST = 2;
 int EAST = 3;
 int SOUTH = 4;
 
+int SAME_X = 0;
+int SAME_Y = 1;
+
 
 using namespace std;
 // STRUCTS:
@@ -29,6 +32,13 @@ struct CrystalPosition {
     int yposition;
     int xposition;
     bool visited;
+};
+
+struct MirrorPosition {
+    int yposition;
+    int xposition;
+    char sign;
+    int direction;
 };
 
 //DECLARATIONS:
@@ -118,10 +128,6 @@ bool checkIfPathIsCorrect(vector<vector<char>> &maze, vector<CrystalPosition> &c
     }
 
     while ((!everyCrystalVisited(positionsOfCrystals)) && isPositionRight) {
-        cout << "Y: " << currentPosition.yposition << " X: " << currentPosition.xposition << " PositionRight: "
-             << isPositionRight << " Lustra odwiedzone: " << positionsOfCrystals.at(0).visited << " "
-             << positionsOfCrystals.at(1).visited << " " << positionsOfCrystals.at(2).visited <<
-             endl;
         if (direction == EAST) {
             currentPosition.xposition++;
         }
@@ -145,11 +151,11 @@ bool checkIfPathIsCorrect(vector<vector<char>> &maze, vector<CrystalPosition> &c
 
         //    Jezeli jestem na krysztale to muszę go znaleźć i ustawić mu visited na true
         if (maze[currentPosition.yposition][currentPosition.xposition] == CRYSTAL_SIGN) {
-            for (int i = 0; i < crystalPositions.size(); i++) {
-                if (crystalPositions.at(i).yposition == currentPosition.yposition &&
-                    crystalPositions.at(i).xposition == currentPosition.xposition) {
+            for (int i = 0; i < positionsOfCrystals.size(); i++) {
+                if (positionsOfCrystals.at(i).yposition == currentPosition.yposition &&
+                    positionsOfCrystals.at(i).xposition == currentPosition.xposition) {
 
-                    crystalPositions.at(i).visited = true;
+                    positionsOfCrystals[i].visited = true;
                     cout << "Ustawiam visited na true" << endl;
                 }
             }
@@ -175,6 +181,66 @@ bool checkNeighboringPositions(int i, int j, vector<vector<char>> &maze, const i
     if (maze[i][j - 1] == BLOCK_SIGN && maze[i][j + 1] == BLOCK_SIGN) return false;
 
     return true;
+}
+
+bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition, vector<vector<char>> &maze) {
+    if((startPosition.xposition != startPosition.xposition) && (startPosition.yposition != startPosition.xposition)){
+        return false;
+    }
+    if((startPosition.xposition == startPosition.xposition) && (startPosition.yposition == startPosition.xposition)){
+        return false;
+    }
+    int direction = startPosition.direction;
+    int commonCoordinate = -1;
+    bool result = true;
+    if (startPosition.yposition == finishPosition.yposition) {
+        commonCoordinate = SAME_Y;
+    }
+    if (startPosition.xposition == finishPosition.xposition) {
+        commonCoordinate = SAME_X;
+    }
+    if (commonCoordinate == -1) {
+        return false;
+    }
+
+    if (commonCoordinate == SAME_Y) {
+        if (direction == EAST) {
+            for (int i = startPosition.xposition + 1; i < finishPosition.xposition; i++) {
+                if (maze[startPosition.yposition][i] == BLOCK_SIGN) {
+                    result = false;
+                }
+            }
+        }
+
+        if (direction == WEST) {
+            for (int i = startPosition.xposition - 1; i > finishPosition.xposition; i--) {
+                if (maze[startPosition.yposition][i] == BLOCK_SIGN) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    if (commonCoordinate == SAME_X) {
+        if (direction == SOUTH) {
+            for (int i = startPosition.yposition + 1; i < finishPosition.yposition; i++) {
+                if (maze[i][startPosition.xposition] == BLOCK_SIGN) {
+                    result = false;
+                }
+            }
+        }
+
+        if (direction == NORTH) {
+            for (int i = startPosition.yposition - 1; i > finishPosition.yposition; i--) {
+                if (maze[i][startPosition.xposition] == BLOCK_SIGN) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+
+    return result;
 }
 
 bool everyCrystalVisited(vector<CrystalPosition> &crystalPositions) {
@@ -249,15 +315,20 @@ int main(int argc, char *argv[]) {
     positionsOfCrystals = setPositionsOfCrystals(originalMaze, mazeLength, mazeWidth);
 
 
+    bool gotResult = false;
     newMaze = getCopyOfMazeWithInsertedMirrors(originalMaze, mazeLength, mazeWidth);
-
-
-    if (checkIfPathIsCorrect(newMaze, positionsOfCrystals)) {
-        printMaze(mazeLength, mazeWidth, newMaze);
-    } else {
-        cout << "Bledne rozmieszczenie luster!" << endl;
+    if(checkIfPathIsCorrect(newMaze, positionsOfCrystals)) {
+        gotResult = true;
     }
 
+
+//    while(!gotResult){
+//        cout << "Jednak trzeba powstawiac jakies lustra :(";
+//
+//
+//    }
+
+    printMaze(mazeLength, mazeWidth, newMaze);
     return 0;
 }
 
@@ -293,10 +364,6 @@ vector<vector<char>> getCopyOfMazeWithInsertedMirrors(vector<vector<char>> &maze
         newMaze[i] = vector<char>(width);
     }
     newMaze = maze;
-    newMaze[1][1] = RIGHT_MIRROR;
-    newMaze[4][1] = RIGHT_MIRROR;
-    newMaze[4][4] = LEFT_MIRROR;
-
     return newMaze;
 }
 
