@@ -55,7 +55,7 @@ bool everyCrystalVisited(vector<CrystalPosition> &crystalPositions);
 
 int getDirectionWhenMirror(int direction, char mirror);
 
-vector<vector<char>> getCopyOfMazeWithInsertedMirrors(vector<vector<char>> &maze, const int length, const int width);
+vector<vector<char>> getCopyOfMaze(vector<vector<char>> &maze, const int length, const int width);
 //MAIN LOGIC METHODS
 
 void readInputArguments(int &length, int &width, int &numOfMirrors) {
@@ -172,6 +172,21 @@ bool checkIfPathIsCorrect(vector<vector<char>> &maze, vector<CrystalPosition> &c
     return isPositionRight;
 }
 
+vector<vector<char>> insertMirrorsToTheMaze(vector<vector<char>> &maze, const int &length, const int &width,
+                                            vector<MirrorPosition> mirrorPositions) {
+    vector<vector<char>> newMaze = vector<vector<char>>(length);
+    for (int i = 0; i < length; i++) {
+        newMaze[i] = vector<char>(width);
+    }
+    newMaze = maze;
+
+    for(int i = 0; i < mirrorPositions.size(); i++){
+        newMaze[mirrorPositions[i].yposition][mirrorPositions[i].xposition] = mirrorPositions[i].sign;
+    }
+    return newMaze;
+
+}
+
 // HELPER METHODS:
 
 bool checkNeighboringPositions(int i, int j, vector<vector<char>> &maze, const int &length, const int &width) {
@@ -184,10 +199,10 @@ bool checkNeighboringPositions(int i, int j, vector<vector<char>> &maze, const i
 }
 
 bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition, vector<vector<char>> &maze) {
-    if((startPosition.xposition != startPosition.xposition) && (startPosition.yposition != startPosition.xposition)){
+    if ((startPosition.xposition != startPosition.xposition) && (startPosition.yposition != startPosition.xposition)) {
         return false;
     }
-    if((startPosition.xposition == startPosition.xposition) && (startPosition.yposition == startPosition.xposition)){
+    if ((startPosition.xposition == startPosition.xposition) && (startPosition.yposition == startPosition.xposition)) {
         return false;
     }
     int direction = startPosition.direction;
@@ -287,6 +302,15 @@ int getDirectionWhenMirror(int direction, char mirror) {
     }
 }
 
+vector<vector<char>> getCopyOfMaze(vector<vector<char>> &maze, const int length, const int width) {
+    vector<vector<char>> newMaze = vector<vector<char>>(length);
+    for (int i = 0; i < length; i++) {
+        newMaze[i] = vector<char>(width);
+    }
+    newMaze = maze;
+    return newMaze;
+}
+
 
 int main(int argc, char *argv[]) {
     int mazeLength;
@@ -297,16 +321,23 @@ int main(int argc, char *argv[]) {
     vector<vector<char>> newMaze;
     vector<CellPosition> positionsForMirrors = vector<CellPosition>();
     vector<CrystalPosition> positionsOfCrystals = vector<CrystalPosition>();
+    vector<vector<vector<MirrorPosition>>> potentialResults;
 
     //Wczytanie podstawowych danych wejściowych
     readInputArguments(mazeLength, mazeWidth, amountOfMirrors);
 
-    //Przygotowanie wektorów przetrzymującego labirynt
+    //Przygotowanie wektorów przetrzymujących labirynt
     originalMaze = vector<vector<char>>(mazeLength);
     newMaze = vector<vector<char>>(mazeLength);
+    potentialResults = vector<vector<vector<MirrorPosition>>>(amountOfMirrors);
+
     for (int i = 0; i < mazeLength; i++) {
         originalMaze[i] = vector<char>(mazeWidth);
         newMaze[i] = vector<char>(mazeWidth);
+    }
+
+    for(int i = 0; i < amountOfMirrors; i++){
+        potentialResults[i] = vector<vector<MirrorPosition>>();
     }
 
     //Wczytanie labiryntu a także pozycji miejsc na lustra i kryształów
@@ -315,18 +346,35 @@ int main(int argc, char *argv[]) {
     positionsOfCrystals = setPositionsOfCrystals(originalMaze, mazeLength, mazeWidth);
 
 
+    //Sprawdzenie czy może nie trzeba wstawiać żadnych luster do labiryntu
     bool gotResult = false;
-    newMaze = getCopyOfMazeWithInsertedMirrors(originalMaze, mazeLength, mazeWidth);
-    if(checkIfPathIsCorrect(newMaze, positionsOfCrystals)) {
+    newMaze = getCopyOfMaze(originalMaze, mazeLength, mazeWidth);
+    if (checkIfPathIsCorrect(newMaze, positionsOfCrystals)) {
         gotResult = true;
     }
 
+    //Wstawienie punktu startowego do pierwszej pozycji rozwiązań
+    MirrorPosition startPosition = {1, 0, ' ', EAST};
+    vector<MirrorPosition> vec1 = vector<MirrorPosition>();
+    vec1.push_back(startPosition);
+    vector<vector<MirrorPosition>> vec2 = vector<vector<MirrorPosition>>();
+    vec2.push_back(vec1);
+    potentialResults[0] = vec2;
 
-//    while(!gotResult){
-//        cout << "Jednak trzeba powstawiac jakies lustra :(";
+    while (false) {
+
+//        for(int i = 1; i < amountOfMirrors; i++){
+//            int sizeOfPreviousVector = potentialResults[i-1].size(); //ilosc rozwiazan o dlugosci i - 1
+//
+//            for (int j = 0; j < sizeOfPreviousVector; j++){
+//                potentialResults[i-1];
+//            }
 //
 //
-//    }
+//        }
+
+
+    }
 
     printMaze(mazeLength, mazeWidth, newMaze);
     return 0;
@@ -356,15 +404,6 @@ void printPositionsOfCrystals(vector<CrystalPosition> positionsVector) {
         CrystalPosition c = positionsVector.at(i);
         cout << "Y: " << c.yposition << " X: " << c.xposition << endl;
     }
-}
-
-vector<vector<char>> getCopyOfMazeWithInsertedMirrors(vector<vector<char>> &maze, const int length, const int width) {
-    vector<vector<char>> newMaze = vector<vector<char>>(length);
-    for (int i = 0; i < length; i++) {
-        newMaze[i] = vector<char>(width);
-    }
-    newMaze = maze;
-    return newMaze;
 }
 
 
