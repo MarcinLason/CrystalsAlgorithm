@@ -180,7 +180,7 @@ vector<vector<char>> insertMirrorsToTheMaze(vector<vector<char>> &maze, const in
     }
     newMaze = maze;
 
-    for(int i = 0; i < mirrorPositions.size(); i++){
+    for (int i = 0; i < mirrorPositions.size(); i++) {
         newMaze[mirrorPositions[i].yposition][mirrorPositions[i].xposition] = mirrorPositions[i].sign;
     }
     return newMaze;
@@ -199,10 +199,10 @@ bool checkNeighboringPositions(int i, int j, vector<vector<char>> &maze, const i
 }
 
 bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition, vector<vector<char>> &maze) {
-    if ((startPosition.xposition != startPosition.xposition) && (startPosition.yposition != startPosition.xposition)) {
+    if ((startPosition.xposition != finishPosition.xposition) && (startPosition.yposition != finishPosition.yposition)) {
         return false;
     }
-    if ((startPosition.xposition == startPosition.xposition) && (startPosition.yposition == startPosition.xposition)) {
+    if ((startPosition.xposition == finishPosition.xposition) && (startPosition.yposition == finishPosition.xposition)) {
         return false;
     }
     int direction = startPosition.direction;
@@ -234,6 +234,13 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
                 }
             }
         }
+        if (direction == NORTH){
+            return false;
+        }
+
+        if(direction == SOUTH){
+            return false;
+        }
     }
 
     if (commonCoordinate == SAME_X) {
@@ -251,6 +258,14 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
                     result = false;
                 }
             }
+        }
+
+        if(direction == EAST){
+            return false;
+        }
+
+        if(direction == WEST){
+            return false;
         }
     }
 
@@ -329,14 +344,14 @@ int main(int argc, char *argv[]) {
     //Przygotowanie wektorów przetrzymujących labirynt
     originalMaze = vector<vector<char>>(mazeLength);
     newMaze = vector<vector<char>>(mazeLength);
-    potentialResults = vector<vector<vector<MirrorPosition>>>(amountOfMirrors);
+    potentialResults = vector<vector<vector<MirrorPosition>>>(amountOfMirrors + 1);
 
     for (int i = 0; i < mazeLength; i++) {
         originalMaze[i] = vector<char>(mazeWidth);
         newMaze[i] = vector<char>(mazeWidth);
     }
 
-    for(int i = 0; i < amountOfMirrors; i++){
+    for (int i = 0; i < (amountOfMirrors + 1); i++) {
         potentialResults[i] = vector<vector<MirrorPosition>>();
     }
 
@@ -361,21 +376,36 @@ int main(int argc, char *argv[]) {
     vec2.push_back(vec1);
     potentialResults[0] = vec2;
 
-    while (false) {
+//    while (startPosition.direction == EAST) {
+        for (int i = 1; i < (amountOfMirrors + 1); i++) { // i oznacza ilosc luster w tworzonych rozwiazaniach
+            int amountOfPreviousSizeResults = potentialResults[i - 1].size();
+            for(int j = 0; j < amountOfPreviousSizeResults; j++) { // j sluzy jedynie do przejscia po wszystkich rozwiazaniach o rozmiarze mniejszym o 1 od aktualnie tworzonych
+                vector<MirrorPosition> result = potentialResults[i - 1][j];
+                MirrorPosition lastElementOfResult = result[i-1];
+                for(int k = 0; k < positionsForMirrors.size(); k++) { //k sluzy jedynie do przejscia po wszystkich mozliwych miejscach dla luster i zobaczenia czy sa one dostepne z poziomu ostatniego lustra przetawarzanego rozwiazania
+                    if(checkIfAccessible(lastElementOfResult, positionsForMirrors[k], originalMaze)){
+                        vector<MirrorPosition> newResult1 = vector<MirrorPosition>(i+1); //i+1 poniewaz w rozwiazaniu bedzie tez punkt startowy
+                        vector<MirrorPosition> newResult2 = vector<MirrorPosition>(i+1);
+                        for(int l = 0; l < i; l++){
+                            newResult1[l] = result[l];
+                            newResult2[l] = result[l];
+                        }
+                        MirrorPosition lastPosition1 = {positionsForMirrors[k].yposition, positionsForMirrors[k].xposition, LEFT_MIRROR, getDirectionWhenMirror(lastElementOfResult.direction, LEFT_MIRROR)};
+                        MirrorPosition lastPosition2 = {positionsForMirrors[k].yposition, positionsForMirrors[k].xposition, RIGHT_MIRROR, getDirectionWhenMirror(lastElementOfResult.direction, RIGHT_MIRROR)};
+                        newResult1[i] = lastPosition1;
+                        newResult2[i] = lastPosition2;
+                        potentialResults[i].push_back(newResult1);
+                        potentialResults[i].push_back(newResult2);
+                    }
+                }
+            }
+            //Tutaj sprawdzanie sciezek!
+        }
 
-//        for(int i = 1; i < amountOfMirrors; i++){
-//            int sizeOfPreviousVector = potentialResults[i-1].size(); //ilosc rozwiazan o dlugosci i - 1
-//
-//            for (int j = 0; j < sizeOfPreviousVector; j++){
-//                potentialResults[i-1];
-//            }
-//
-//
-//        }
 
+//    }
 
-    }
-
+    cout << "Elo"<< endl;
     printMaze(mazeLength, mazeWidth, newMaze);
     return 0;
 }
