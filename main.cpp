@@ -3,9 +3,7 @@
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "TemplateArgumentsIssues"
-int MAX_MAZE_WIDTH = 100;
-int MAX_MAZE_LENGTH = 100;
-int MAX_CRISTALS_AMOUNT = 100;
+
 char CRYSTAL_SIGN = '*';
 char BLOCK_SIGN = '#';
 char LEFT_MIRROR = '/';
@@ -56,6 +54,7 @@ bool everyCrystalVisited(vector<CrystalPosition> &crystalPositions);
 int getDirectionWhenMirror(int direction, char mirror);
 
 vector<vector<char>> getCopyOfMaze(vector<vector<char>> &maze, const int length, const int width);
+
 //MAIN LOGIC METHODS
 
 void readInputArguments(int &length, int &width, int &numOfMirrors) {
@@ -156,7 +155,6 @@ bool checkIfPathIsCorrect(vector<vector<char>> &maze, vector<CrystalPosition> &c
                     positionsOfCrystals.at(i).xposition == currentPosition.xposition) {
 
                     positionsOfCrystals[i].visited = true;
-                    cout << "Ustawiam visited na true" << endl;
                 }
             }
         }
@@ -198,11 +196,29 @@ bool checkNeighboringPositions(int i, int j, vector<vector<char>> &maze, const i
     return true;
 }
 
+bool checkNextSign(MirrorPosition mirrorPosition, vector<vector<char>> &maze){
+    if(mirrorPosition.direction == NORTH){
+        return !(maze[mirrorPosition.yposition-1][mirrorPosition.xposition] == BLOCK_SIGN);
+    }
+
+    if(mirrorPosition.direction == SOUTH){
+        return !(maze[mirrorPosition.yposition+1][mirrorPosition.xposition] == BLOCK_SIGN);
+    }
+
+    if(mirrorPosition.direction == EAST){
+        return !(maze[mirrorPosition.yposition][mirrorPosition.xposition+1] == BLOCK_SIGN);
+    }
+
+    if(mirrorPosition.direction == WEST){
+        return !(maze[mirrorPosition.yposition][mirrorPosition.xposition-1] == BLOCK_SIGN);
+    }
+}
+
 bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition, vector<vector<char>> &maze) {
-    if ((startPosition.xposition != finishPosition.xposition) && (startPosition.yposition != finishPosition.yposition)) {
+    if ((startPosition.yposition != finishPosition.yposition) && (startPosition.xposition != finishPosition.xposition)) {
         return false;
     }
-    if ((startPosition.xposition == finishPosition.xposition) && (startPosition.yposition == finishPosition.xposition)) {
+    if ((startPosition.yposition == finishPosition.yposition) && (startPosition.xposition == finishPosition.xposition)) {
         return false;
     }
     int direction = startPosition.direction;
@@ -219,7 +235,18 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
     }
 
     if (commonCoordinate == SAME_Y) {
+        if (direction == NORTH){
+            return false;
+        }
+
+        if(direction == SOUTH){
+            return false;
+        }
+
         if (direction == EAST) {
+            if(startPosition.xposition > finishPosition.xposition){
+                return false;
+            }
             for (int i = startPosition.xposition + 1; i < finishPosition.xposition; i++) {
                 if (maze[startPosition.yposition][i] == BLOCK_SIGN) {
                     result = false;
@@ -228,23 +255,30 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
         }
 
         if (direction == WEST) {
+            if(startPosition.xposition < finishPosition.xposition){
+                return false;
+            }
             for (int i = startPosition.xposition - 1; i > finishPosition.xposition; i--) {
                 if (maze[startPosition.yposition][i] == BLOCK_SIGN) {
                     result = false;
                 }
             }
         }
-        if (direction == NORTH){
-            return false;
-        }
-
-        if(direction == SOUTH){
-            return false;
-        }
     }
 
     if (commonCoordinate == SAME_X) {
+        if(direction == EAST){
+            return false;
+        }
+
+        if(direction == WEST){
+            return false;
+        }
+
         if (direction == SOUTH) {
+            if(startPosition.yposition > finishPosition.yposition){
+                return false;
+            }
             for (int i = startPosition.yposition + 1; i < finishPosition.yposition; i++) {
                 if (maze[i][startPosition.xposition] == BLOCK_SIGN) {
                     result = false;
@@ -253,22 +287,16 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
         }
 
         if (direction == NORTH) {
+            if(startPosition.yposition < finishPosition.yposition){
+                return false;
+            }
             for (int i = startPosition.yposition - 1; i > finishPosition.yposition; i--) {
                 if (maze[i][startPosition.xposition] == BLOCK_SIGN) {
                     result = false;
                 }
             }
         }
-
-        if(direction == EAST){
-            return false;
-        }
-
-        if(direction == WEST){
-            return false;
-        }
     }
-
 
     return result;
 }
@@ -285,8 +313,7 @@ bool everyCrystalVisited(vector<CrystalPosition> &crystalPositions) {
 
 int getDirectionWhenMirror(int direction, char mirror) {
 
-    if (mirror == LEFT_MIRROR) { //   / takie
-        cout << "Jestem na lewym lustrze" << endl; //[TO REMOVE]
+    if (mirror == LEFT_MIRROR) {
         if (direction == NORTH) {
             return EAST;
         }
@@ -301,7 +328,6 @@ int getDirectionWhenMirror(int direction, char mirror) {
         }
     }
     if (mirror == RIGHT_MIRROR) {
-        cout << "Jestem na prawym lustrze " << endl; // [TO REMOVE}
         if (direction == NORTH) {
             return WEST;
         }
@@ -376,13 +402,12 @@ int main(int argc, char *argv[]) {
     vec2.push_back(vec1);
     potentialResults[0] = vec2;
 
-//    while (startPosition.direction == EAST) {
-        for (int i = 1; i < (amountOfMirrors + 1); i++) { // i oznacza ilosc luster w tworzonych rozwiazaniach
+        for (int i = 1; i < (amountOfMirrors + 1) && gotResult == false; i++) { // i oznacza ilosc luster w tworzonych rozwiazaniach
             int amountOfPreviousSizeResults = potentialResults[i - 1].size();
-            for(int j = 0; j < amountOfPreviousSizeResults; j++) { // j sluzy jedynie do przejscia po wszystkich rozwiazaniach o rozmiarze mniejszym o 1 od aktualnie tworzonych
+            for(int j = 0; j < amountOfPreviousSizeResults && gotResult == false; j++) { // j sluzy jedynie do przejscia po wszystkich rozwiazaniach o rozmiarze mniejszym o 1 od aktualnie tworzonych
                 vector<MirrorPosition> result = potentialResults[i - 1][j];
                 MirrorPosition lastElementOfResult = result[i-1];
-                for(int k = 0; k < positionsForMirrors.size(); k++) { //k sluzy jedynie do przejscia po wszystkich mozliwych miejscach dla luster i zobaczenia czy sa one dostepne z poziomu ostatniego lustra przetawarzanego rozwiazania
+                for(int k = 0; k < positionsForMirrors.size() && gotResult == false; k++) { //k sluzy jedynie do przejscia po wszystkich mozliwych miejscach dla luster i zobaczenia czy sa one dostepne z poziomu ostatniego lustra przetawarzanego rozwiazania
                     if(checkIfAccessible(lastElementOfResult, positionsForMirrors[k], originalMaze)){
                         vector<MirrorPosition> newResult1 = vector<MirrorPosition>(i+1); //i+1 poniewaz w rozwiazaniu bedzie tez punkt startowy
                         vector<MirrorPosition> newResult2 = vector<MirrorPosition>(i+1);
@@ -392,21 +417,42 @@ int main(int argc, char *argv[]) {
                         }
                         MirrorPosition lastPosition1 = {positionsForMirrors[k].yposition, positionsForMirrors[k].xposition, LEFT_MIRROR, getDirectionWhenMirror(lastElementOfResult.direction, LEFT_MIRROR)};
                         MirrorPosition lastPosition2 = {positionsForMirrors[k].yposition, positionsForMirrors[k].xposition, RIGHT_MIRROR, getDirectionWhenMirror(lastElementOfResult.direction, RIGHT_MIRROR)};
+
                         newResult1[i] = lastPosition1;
+                        newMaze = getCopyOfMaze(originalMaze, mazeLength, mazeWidth);
+                        newMaze = insertMirrorsToTheMaze(newMaze, mazeLength, mazeWidth, newResult1);
+                        if (checkIfPathIsCorrect(newMaze, positionsOfCrystals)){
+                            gotResult = true;
+                        }
+
                         newResult2[i] = lastPosition2;
-                        potentialResults[i].push_back(newResult1);
-                        potentialResults[i].push_back(newResult2);
+                        if(gotResult == false){
+                            newMaze = getCopyOfMaze(originalMaze, mazeLength, mazeWidth);
+                            newMaze = insertMirrorsToTheMaze(newMaze, mazeLength, mazeWidth, newResult2);
+                            if (checkIfPathIsCorrect(newMaze, positionsOfCrystals)){
+                                gotResult = true;
+                            }
+                        }
+
+                        if(checkNextSign(lastPosition1, originalMaze)){
+                            potentialResults[i].push_back(newResult1);
+                        }
+                        if(checkNextSign(lastPosition2, originalMaze)){
+                            potentialResults[i].push_back(newResult2);
+                        }
                     }
                 }
             }
-            //Tutaj sprawdzanie sciezek!
         }
 
-
-//    }
-
-    cout << "Elo"<< endl;
-    printMaze(mazeLength, mazeWidth, newMaze);
+    if(gotResult){
+        cout << mazeLength << " " << mazeWidth << endl;
+        cout << amountOfMirrors << endl;
+        printMaze(mazeLength, mazeWidth, newMaze);
+    }
+    else {
+        cout << "NIe znalzlem rozwiazania" << endl;
+    }
     return 0;
 }
 
