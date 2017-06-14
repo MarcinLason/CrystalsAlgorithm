@@ -103,11 +103,16 @@ vector<CrystalPosition> setPositionsOfCrystals(vector<vector<char>> &maze, const
     for (int i = 0; i < length; i++) {
         for (int j = 0; j < width; j++) {
             if (maze[i][j] == CRYSTAL_SIGN) {
-                CrystalPosition crystalPosition = {
-                        i,
-                        j,
-                        false,
-                };
+                CrystalPosition crystalPosition;
+                if (i == 1 && j == 0){
+                    crystalPosition = {
+                            i, j, true,
+                    };
+                } else {
+                    crystalPosition = {
+                            i, j, false,
+                    };
+                }
                 positionVector.push_back(crystalPosition);
             }
         }
@@ -395,7 +400,7 @@ int main(int argc, char *argv[]) {
     }
 
     //Wstawienie punktu startowego do pierwszej pozycji rozwiązań
-    MirrorPosition startPosition = {1, 0, ' ', EAST};
+    MirrorPosition startPosition = {1, 0, originalMaze[1][0], EAST};
     vector<MirrorPosition> vec1 = vector<MirrorPosition>();
     vec1.push_back(startPosition);
     vector<vector<MirrorPosition>> vec2 = vector<vector<MirrorPosition>>();
@@ -451,7 +456,7 @@ int main(int argc, char *argv[]) {
         printMaze(mazeLength, mazeWidth, newMaze);
     }
     else {
-        cout << "NIe znalzlem rozwiazania" << endl;
+        printMaze(mazeLength, mazeWidth, originalMaze);
     }
     return 0;
 }
