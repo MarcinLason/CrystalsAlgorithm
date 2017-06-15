@@ -1,8 +1,6 @@
 #include <iostream>
 #include <vector>
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "TemplateArgumentsIssues"
+#include <chrono>
 
 char CRYSTAL_SIGN = '*';
 char BLOCK_SIGN = '#';
@@ -74,20 +72,17 @@ void parseMaze(const int &length, const int &width, vector<vector<char>> &maze) 
     }
 }
 
+//znajdywanie potencjalnych pozycji dla luster
 vector<CellPosition> setPositionsForMirrors(vector<vector<char>> &maze, const int &length, const int &width) {
     vector<CellPosition> positionVector;
     positionVector = vector<CellPosition>();
 
 
-    for (int i = 0; i < length; i++) {
-        for (int j = 0; j < width; j++) {
+    for (int i = 1; i < (length-1); i++) {
+        for (int j = 0; j < (width-1); j++) {
             if (maze[i][j] != CRYSTAL_SIGN && maze[i][j] != BLOCK_SIGN &&
                 checkNeighboringPositions(i, j, maze, length, width)) {
-
-                CellPosition currentPosition = {
-                        i,
-                        j,
-                };
+                CellPosition currentPosition = { i, j, };
                 positionVector.push_back(currentPosition);
             }
         }
@@ -96,22 +91,19 @@ vector<CellPosition> setPositionsForMirrors(vector<vector<char>> &maze, const in
     return positionVector;
 }
 
+// znajdywanie pozycji kryształów
 vector<CrystalPosition> setPositionsOfCrystals(vector<vector<char>> &maze, const int &length, const int width) {
     vector<CrystalPosition> positionVector;
     positionVector = vector<CrystalPosition>();
 
-    for (int i = 0; i < length; i++) {
-        for (int j = 0; j < width; j++) {
+    for (int i = 1; i < (length-1); i++) {
+        for (int j = 0; j < (width-1); j++) {
             if (maze[i][j] == CRYSTAL_SIGN) {
                 CrystalPosition crystalPosition;
                 if (i == 1 && j == 0){
-                    crystalPosition = {
-                            i, j, true,
-                    };
+                    crystalPosition = { i, j, true, };
                 } else {
-                    crystalPosition = {
-                            i, j, false,
-                    };
+                    crystalPosition = { i, j, false, };
                 }
                 positionVector.push_back(crystalPosition);
             }
@@ -359,6 +351,7 @@ vector<vector<char>> getCopyOfMaze(vector<vector<char>> &maze, const int length,
 
 
 int main(int argc, char *argv[]) {
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     int mazeLength;
     int mazeWidth;
     int amountOfMirrors;
@@ -458,6 +451,8 @@ int main(int argc, char *argv[]) {
     else {
         printMaze(mazeLength, mazeWidth, originalMaze);
     }
+    std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() <<std::endl;
     return 0;
 }
 
@@ -486,6 +481,3 @@ void printPositionsOfCrystals(vector<CrystalPosition> positionsVector) {
         cout << "Y: " << c.yposition << " X: " << c.xposition << endl;
     }
 }
-
-
-#pragma clang diagnostic pop
