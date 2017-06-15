@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <chrono>
 
 char CRYSTAL_SIGN = '*';
 char BLOCK_SIGN = '#';
@@ -41,10 +40,6 @@ struct MirrorPosition {
 
 void printMaze(const int &length, const int &width, vector<vector<char>> &maze);
 
-void printPositionsForMirrors(vector<CellPosition> positionsVector);
-
-void printPositionsOfCrystals(vector<CrystalPosition> positionsVector);
-
 bool checkNeighboringPositions(int i, int j, vector<vector<char>> &maze, const int &length, const int &width);
 
 bool everyCrystalVisited(vector<CrystalPosition> &crystalPositions);
@@ -76,7 +71,6 @@ void parseMaze(const int &length, const int &width, vector<vector<char>> &maze) 
 vector<CellPosition> setPositionsForMirrors(vector<vector<char>> &maze, const int &length, const int &width) {
     vector<CellPosition> positionVector;
     positionVector = vector<CellPosition>();
-
 
     for (int i = 1; i < (length-1); i++) {
         for (int j = 0; j < (width-1); j++) {
@@ -139,28 +133,31 @@ bool checkIfPathIsCorrect(vector<vector<char>> &maze, vector<CrystalPosition> &c
         //sprawdzam, czy przypadkiem nie wyjdę z labiryntu
         if (currentPosition.yposition == 1 && currentPosition.xposition == 0 && direction == WEST) {
             isPositionRight = false;
+            break;
         }
         // sprawdzam, czy nie jestem na ścianie
         if (maze[currentPosition.yposition][currentPosition.xposition] == BLOCK_SIGN) {
             isPositionRight = false;
+            break;
         }
 
         //    Jezeli jestem na krysztale to muszę go znaleźć i ustawić mu visited na true
-        if (maze[currentPosition.yposition][currentPosition.xposition] == CRYSTAL_SIGN) {
+        else if (maze[currentPosition.yposition][currentPosition.xposition] == CRYSTAL_SIGN) {
             for (int i = 0; i < positionsOfCrystals.size(); i++) {
                 if (positionsOfCrystals.at(i).yposition == currentPosition.yposition &&
                     positionsOfCrystals.at(i).xposition == currentPosition.xposition) {
 
                     positionsOfCrystals[i].visited = true;
+                    break;
                 }
             }
         }
         // Jezeli jestem na lustrze to musze zmienic kierunek
-        if (maze[currentPosition.yposition][currentPosition.xposition] == LEFT_MIRROR) {
+        else if (maze[currentPosition.yposition][currentPosition.xposition] == LEFT_MIRROR) {
             direction = getDirectionWhenMirror(direction, LEFT_MIRROR);
         }
         // Jezeli jestem na lustrze to musze zmienic kierunek
-        if (maze[currentPosition.yposition][currentPosition.xposition] == RIGHT_MIRROR) {
+        else if (maze[currentPosition.yposition][currentPosition.xposition] == RIGHT_MIRROR) {
             direction = getDirectionWhenMirror(direction, RIGHT_MIRROR);
         }
     }
@@ -186,7 +183,6 @@ vector<vector<char>> insertMirrorsToTheMaze(vector<vector<char>> &maze, const in
 
 bool checkNeighboringPositions(int i, int j, vector<vector<char>> &maze, const int &length, const int &width) {
     if (length < 3 && width < 3) return false;
-    if (i == 0 || i == (length - 1) || j == 0 || j == (width - 1)) return false;
     if (maze[i - 1][j] == BLOCK_SIGN && maze[i + 1][j] == BLOCK_SIGN) return false;
     if (maze[i][j - 1] == BLOCK_SIGN && maze[i][j + 1] == BLOCK_SIGN) return false;
 
@@ -218,9 +214,8 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
     if ((startPosition.yposition == finishPosition.yposition) && (startPosition.xposition == finishPosition.xposition)) {
         return false;
     }
-    int direction = startPosition.direction;
     int commonCoordinate = -1;
-    bool result = true;
+
     if (startPosition.yposition == finishPosition.yposition) {
         commonCoordinate = SAME_Y;
     }
@@ -230,6 +225,9 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
     if (commonCoordinate == -1) {
         return false;
     }
+
+    int direction = startPosition.direction;
+    bool result = true;
 
     if (commonCoordinate == SAME_Y) {
         if (direction == NORTH){
@@ -247,6 +245,7 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
             for (int i = startPosition.xposition + 1; i < finishPosition.xposition; i++) {
                 if (maze[startPosition.yposition][i] == BLOCK_SIGN) {
                     result = false;
+                    break;
                 }
             }
         }
@@ -258,6 +257,7 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
             for (int i = startPosition.xposition - 1; i > finishPosition.xposition; i--) {
                 if (maze[startPosition.yposition][i] == BLOCK_SIGN) {
                     result = false;
+                    break;
                 }
             }
         }
@@ -279,6 +279,7 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
             for (int i = startPosition.yposition + 1; i < finishPosition.yposition; i++) {
                 if (maze[i][startPosition.xposition] == BLOCK_SIGN) {
                     result = false;
+                    break;
                 }
             }
         }
@@ -290,6 +291,7 @@ bool checkIfAccessible(MirrorPosition startPosition, CellPosition finishPosition
             for (int i = startPosition.yposition - 1; i > finishPosition.yposition; i--) {
                 if (maze[i][startPosition.xposition] == BLOCK_SIGN) {
                     result = false;
+                    break;
                 }
             }
         }
@@ -303,6 +305,7 @@ bool everyCrystalVisited(vector<CrystalPosition> &crystalPositions) {
     for (int i = 0; i < crystalPositions.size(); i++) {
         if (!crystalPositions.at(i).visited) {
             result = false;
+            break;
         }
     }
     return result;
@@ -351,7 +354,6 @@ vector<vector<char>> getCopyOfMaze(vector<vector<char>> &maze, const int length,
 
 
 int main(int argc, char *argv[]) {
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     int mazeLength;
     int mazeWidth;
     int amountOfMirrors;
@@ -421,15 +423,15 @@ int main(int argc, char *argv[]) {
                         newMaze = insertMirrorsToTheMaze(newMaze, mazeLength, mazeWidth, newResult1);
                         if (checkIfPathIsCorrect(newMaze, positionsOfCrystals)){
                             gotResult = true;
+                            break;
                         }
 
                         newResult2[i] = lastPosition2;
-                        if(gotResult == false){
-                            newMaze = getCopyOfMaze(originalMaze, mazeLength, mazeWidth);
-                            newMaze = insertMirrorsToTheMaze(newMaze, mazeLength, mazeWidth, newResult2);
-                            if (checkIfPathIsCorrect(newMaze, positionsOfCrystals)){
-                                gotResult = true;
-                            }
+                        newMaze = getCopyOfMaze(originalMaze, mazeLength, mazeWidth);
+                        newMaze = insertMirrorsToTheMaze(newMaze, mazeLength, mazeWidth, newResult2);
+                        if (checkIfPathIsCorrect(newMaze, positionsOfCrystals)){
+                            gotResult = true;
+                            break;
                         }
 
                         if(checkNextSign(lastPosition1, originalMaze)){
@@ -451,8 +453,6 @@ int main(int argc, char *argv[]) {
     else {
         printMaze(mazeLength, mazeWidth, originalMaze);
     }
-    std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
-    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() <<std::endl;
     return 0;
 }
 
@@ -463,21 +463,5 @@ void printMaze(const int &length, const int &width, vector<vector<char>> &maze) 
             cout << maze[i][j];
         }
         cout << maze[i][width - 1] << endl;
-    }
-}
-
-void printPositionsForMirrors(vector<CellPosition> positionsVector) {
-    cout << "Pozycje potencjalnych pol na lustra" << endl;
-    for (int i = 0; i < positionsVector.size(); i++) {
-        CellPosition c = positionsVector.at(i);
-        cout << "Y: " << c.yposition << " X: " << c.xposition << endl;
-    }
-}
-
-void printPositionsOfCrystals(vector<CrystalPosition> positionsVector) {
-    cout << "Pozycje pol z krysztalami" << endl;
-    for (int i = 0; i < positionsVector.size(); i++) {
-        CrystalPosition c = positionsVector.at(i);
-        cout << "Y: " << c.yposition << " X: " << c.xposition << endl;
     }
 }
